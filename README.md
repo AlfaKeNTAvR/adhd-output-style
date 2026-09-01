@@ -17,16 +17,33 @@ Paste into Claude Code:
 Install the ADHD output style from https://github.com/AlfaKeNTAvR/adhd-output-style, refer to the repo's AGENTS.md for instructions.
 ```
 
-Or by hand, in three steps:
+Or save [`output-styles/adhd.md`](output-styles/adhd.md) to
+`~/.claude/output-styles/adhd.md` yourself.
 
-1. Save [`output-styles/adhd.md`](output-styles/adhd.md) to `~/.claude/output-styles/adhd.md`.
-2. Add `"outputStyle": "ADHD"` to `~/.claude/settings.json` for every project, or
-   run `/config` -> **Output style** -> **ADHD** to set it for the current project only.
-3. Run `/clear`, or start a new session. The style is read at session start, so an
-   edit never applies to the session that made it.
+### Then turn it on, and decide where it applies
 
-Full instructions, including scope and precedence between settings files and the
-optional `CLAUDE.md` companion rules: [INSTALL.md](INSTALL.md).
+Installing the file does not select the style. **Selecting it in
+`/config` -> Output style -> ADHD writes `"outputStyle": "ADHD"` into the current
+project's `.claude/settings.local.json`, so it applies to that project only.**
+Start Claude Code anywhere else and you are back on Default, which reads as the
+style switching itself off.
+
+To get it in every project, write the key into `~/.claude/settings.json` yourself:
+
+```json
+{
+  "outputStyle": "ADHD"
+}
+```
+
+Or ask Claude to do it: "add `"outputStyle": "ADHD"` as a top-level key in my
+`~/.claude/settings.json`, leaving the rest of the file untouched."
+
+Then run `/clear`, or start a new session. The style is read at session start, so
+an edit never applies to the session that made it.
+
+Full instructions, including precedence between settings files and the optional
+`CLAUDE.md` companion rules: [INSTALL.md](INSTALL.md).
 
 ## Why an output style and not a skill
 
