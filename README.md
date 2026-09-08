@@ -1,8 +1,8 @@
 # ADHD output style for Claude Code
 
-An **output style** that reshapes every Claude Code response: result first, state
-restated each turn, concerns deferred but never dropped, exactly one next action
-at the end.
+An **output style** that reshapes every Claude Code response: the answer in line
+1, the one thing you must do or decide right under it, a hard word cap per turn
+type, and every decision-changing fact inside the first 60 words.
 
 Derived from [**ayghri/i-have-adhd**](https://github.com/ayghri/i-have-adhd) by
 Ayoub Ghriss (MIT), which ships the same idea as a *skill*. This is a port to
@@ -75,36 +75,84 @@ remembering.
 
 Source: [Claude Code output styles](https://code.claude.com/docs/en/output-styles).
 
+## What a reply looks like
+
+1. **Line 1**: the answer or result, one plain sentence, never a bullet or heading.
+2. **`**Next:**`** right under it, only when you must do or decide something. One
+   action or one question. Every ask and open decision lives here, never lower.
+3. `---` and an optional body, only for decision-changing facts that did not fit
+   above. Prose by default, at most three bullets.
+4. One optional `Also: x, y, z. Ask for any.` line for everything true but not
+   decision-changing: mechanism, history, alternatives.
+5. `## Worth knowing` last: at most three one-line bullets tagged `Risk:`,
+   `Tradeoff:`, `FYI:`. Skippable by design, so never a question or an ask.
+
+Every reply is classified by what you asked and capped in total words: an
+acknowledgement gets 15, a mid-task status 35, a yes/no question 60, a diagnosis
+or completed piece of work 120, a proposal 100. "Walk me through" lifts the cap.
+Only a decision-changing fact may exceed a budget, and it buys the fact, not its
+explanation.
+
 ## Differences from i-have-adhd
 
-Same core: no preamble, no recap, no closers, capped lists, matter-of-fact
-errors, one next action, state restated every turn. What changed:
+Same core: no preamble, no recap, no closers, matter-of-fact errors, one next
+action. What changed:
 
 | | i-have-adhd | This style |
 |---|---|---|
 | **Mechanism** | Skill, invoked with `/i-have-adhd`, kept alive by a "Persistence" section | Output style, selected in `/config`, reinforced by the harness |
-| **First line** | Lead with the *next action* | Lead with the *result*: what happened, or the answer. In an agent harness the work is usually already done, so the outcome is the news; the next action moves to the end |
-| **Next action** | Rule 3, end with one concrete step | Same, plus a hard ordering rule: the `Next:` line is the literal last line, nothing after it |
-| **Estimates** | Specific clock time ("about 15 minutes") | Blast radius: files touched, migrations, whether the API surface changes. Clock time only for work *you* must do (sudo, hardware, interactive logins). An agent's wall-clock is not yours |
-| **Non-blocking concerns** | Tangents suppressed or offered as a follow-up question | A named home: `## Worth knowing`, one line each, ranked. Deferred, never dropped. Anything blocking, unsafe, or needing approval is forced inline and up front instead |
-| **Numbered steps** | Rule 2, number multi-step tasks in prose | Use the task tool for multi-step work and let the checklist do the restating, rather than narrating the plan as prose |
-| **Register** | Not specified | Dropped-grammar shorthand: fragments, no articles, in chat and code comments. Never drop a unit, a threshold, or a reason. Doc files and commit text stay grammatical |
-| **Banned surface** | Idioms removed in the pre-send check | Also no emojis, no em dashes or en dashes, English only |
-| **Correctness floor** | "When to break the rules" list | Stated as a rule: error reports, failing test output, security warnings, and destructive-action confirmations keep their full content. Brevity never overrides correctness |
-| **Precedence** | Harness system prompt outranks the skill | The style governs *shape* only. On anything else, your `CLAUDE.md` wins |
+| **First line** | Lead with the *next action* | Lead with the *result*: what happened, or the answer. In an agent harness the work is usually already done, so the outcome is the news |
+| **Next action** | Rule 3, end with one concrete step | `**Next:**` is line 2, directly under the answer, and it is the only place an ask, an offer, or an open decision may appear |
+| **Length** | Prose rules, no numbers | Hard word caps per turn type, classified by what the reader asked, not by how much the agent found |
+| **What survives the cut** | Judgment call | Defined: a fact that changes your next action, an approval, safety, something irreversible, cost, or whether the result is correct. Those land in the first 60 words with numbers and scope intact; proof, method, and identifiers stay out |
+| **Non-blocking concerns** | Tangents suppressed or offered as a follow-up question | A named home: `## Worth knowing`, up to three tagged one-liners. Deferred, never dropped. Anything blocking or needing approval goes in `**Next:**` instead |
+| **Work already done** | Not addressed | Never listed. The result is the news; the steps are not |
+| **Banned surface** | Idioms removed in the pre-send check | Also no emojis, no em dashes or en dashes, no italic, no tables, no bold outside `**Next:**` and `## Worth knowing`, English only |
+| **Background jobs** | Not addressed | When Claude Code runs the session as a background job (`claude --bg`), line 1 doubles as the job's status headline. See below |
 
 The upstream "when to break the rules" cases (explain-fully requests, destructive
-actions, real ambiguity) are kept, folded into the rules they modify.
+actions, real ambiguity) are kept: an explicit request for depth lifts the word
+cap, and anything irreversible or needing approval counts as decision-changing.
+
+## Background jobs
+
+Claude Code's background jobs (`claude --bg`, listed in the agent view) run a
+classifier over each reply to set the job's state and headline. The session's
+system prompt asks Claude to mark a delivered task with `result:` on its own
+line, a blocker with `needs input:`, and an impossible task with `failed:`.
+Those markers are not documented anywhere else; they exist only in background
+jobs, so in a normal interactive session you will never see one.
+
+Rather than repeating the answer in a trailing marker line, this style puts the
+marker at the start of line 1 when the system prompt asks for it: `result:` when
+the ask is delivered, `needs input:` when line 1 is the one question that
+unblocks Claude, `failed:` when the task is impossible as framed. The job list
+then shows the real answer as the headline. Status, acknowledgement, and
+proposal turns carry no marker, because a marker there would flip the job to
+done while a decision is still owed.
+
+Observed, not documented: the classifier is a language model, not a pattern
+match. It has marked answers done without a marker, and marked a proposal with a
+`result:` line as blocked because its `**Next:**` asked for a decision. Plain
+lowercase `result:` was recognised in every logged case; bold or capitalised
+variants were not tested enough to recommend.
 
 ## Requirements
 
 Claude Code with output-style support. Nothing else: no dependencies, no hooks,
 no scripts.
 
-Tested on Claude Code 2.1.252, Opus 5, high effort level. It should hold on any
+Tested on Claude Code 2.1.263 with Fable 5.1 and Opus 5. It should hold on any
 model, since it is prompt text and nothing else, but that is the configuration it
 was written against and shaped by. Reports from other models and effort levels are
 welcome.
+
+The first version of this style ran to 131 lines and made completeness absolute;
+replies ballooned anyway. The current 38-line version replaced it with word caps
+per turn type after five independent reviews traced the bloat to the same rules.
+A metrics script that tags each reply by turn type and reports length against
+the budgets lives in the author's config repo:
+[`scripts/style-metrics.py`](https://github.com/AlfaKeNTAvR/.claude/blob/main/scripts/style-metrics.py).
 
 Note: `/output-style` as a standalone command was deprecated in 2.1.73 and removed
 in 2.1.91. On current versions the selector lives in `/config`.
@@ -117,13 +165,18 @@ in 2.1.91. On current versions the selector lives in `/config`.
 ## Customizing
 
 - **Rename**: change `name:` in the frontmatter. That string is what `/config` shows.
-- **Turn a rule off**: delete its numbered item. Rules are independent; none
-  cross-references another by number.
-- **Loosen the register**: delete the `## Register` section. You keep the
-  structural rules (result first, one next action, capped lists) without the
-  clipped prose.
-- **Rename `## Worth knowing`**: it appears in rule 14 and in the pre-send check.
-  Change both.
+- **Loosen or tighten the caps**: edit the numbers under `## Budgets`. They are
+  total words per reply, classified by what you asked; the list of turn types is
+  the only place they appear.
+- **Drop a section of the shape**: delete its numbered item under `## Shape`.
+  Items 3 to 5 (body, `Also:` line, `## Worth knowing`) are optional already and
+  can go without touching anything else. `**Next:**` is also referenced under
+  Budgets and under Renderer and register; rename it in all three sections.
+- **Rename `## Worth knowing`**: it appears under Shape and twice under Renderer
+  and register. Change all three.
+- **Not on background jobs**: the marker sentence in Shape item 1 is inert in
+  interactive sessions, since it fires only when the system prompt asks for
+  `result:` lines. Leave it in or cut it; nothing else depends on it.
 - **Do not delete `keep-coding-instructions: true`.** Custom output styles leave
   out Claude Code's built-in software-engineering instructions unless that
   frontmatter line is present. It is already set in the shipped file. Drop it while

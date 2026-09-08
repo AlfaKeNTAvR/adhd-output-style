@@ -61,10 +61,11 @@ filename without `.md` is used instead.
 prompt, read at session start, so an edit never applies to the session that made
 it.
 
-**4. Check it took.** Ask something simple. The reply should be 1-3 sentences,
-open with the answer, and carry no "Let me..." and no "anything else?". Ask for
-something multi-step; the reply should end with a single line starting with
-`Next:`.
+**4. Check it took.** Ask a yes/no question. The reply should open with yes or
+no, stay under about 60 words, and carry no "Let me..." and no "anything else?".
+Ask for something that needs a decision from you; the reply should put the
+question on a `**Next:**` line directly under the first sentence, with nothing
+asked anywhere lower.
 
 ## Scope and precedence
 
@@ -86,10 +87,9 @@ claude --settings '{"outputStyle": "ADHD"}'
 
 ## Optional - companion `CLAUDE.md` rules
 
-The style ends with a precedence rule: it governs the **shape** of output, and on
-anything else your `CLAUDE.md` wins. So two guarantees belong in `CLAUDE.md`
-rather than in the style, because they must survive switching to a different
-style:
+The style governs the **shape and length** of output. Two guarantees belong in
+`CLAUDE.md` rather than in the style, because they must survive switching to a
+different style:
 
 ```markdown
 ## Communication
@@ -121,9 +121,16 @@ Delete `~/.claude/output-styles/adhd.md` if you want it gone entirely.
   `keep-coding-instructions: true` frontmatter line is missing or misspelled.
   Custom styles drop Claude Code's built-in software-engineering instructions by
   default; that line keeps them.
-- **Claude still opens with "Let me..." or closes with "anything else?".** Those
-  are pre-send-check items. Confirm the `## Pre-send check` section survived any
-  edits you made to the file.
+- **Replies are still long.** The caps live under `## Budgets`; confirm that
+  section and `## Before sending` survived any edits you made to the file. A
+  decision-changing fact is allowed past the cap, so a long reply about an
+  irreversible step or a failing test is the style working, not failing.
+- **Claude asks questions at the bottom of a reply.** Every ask belongs on the
+  `**Next:**` line. Confirm Shape item 2 is intact.
+- **A `result:` prefix shows up on line 1.** You are in a background job
+  (`claude --bg`); that word is the job-state marker the harness asks for. It
+  never appears in an interactive session. See the README's Background jobs
+  section.
 - **Subagents ignore the style.** Expected. Output styles apply to the main
   conversation only; a subagent runs its own system prompt.
 - **Concerns vanish instead of moving to `## Worth knowing`.** Add the companion
