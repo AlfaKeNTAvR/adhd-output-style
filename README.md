@@ -84,8 +84,12 @@ Source: [Claude Code output styles](https://code.claude.com/docs/en/output-style
    above. Prose by default, at most three bullets.
 4. One optional `Also: x, y, z. Ask for any.` line for everything true but not
    decision-changing: mechanism, history, alternatives.
-5. `## Worth knowing` last: at most three one-line bullets tagged `Risk:`,
-   `Tradeoff:`, `FYI:`. Skippable by design, so never a question or an ask.
+5. `## Worth knowing` last: one-line bullets tagged `Risk:`, `Tradeoff:`,
+   `FYI:`, every real risk or tradeoff even past three. Skippable by design, so
+   never a question or an ask.
+
+One phrase per paragraph or bullet is bold: the action, number, or concept that
+carries it, so reading only the bold still gives the gist.
 
 Every reply is classified by what you asked and capped in total words: an
 acknowledgement gets 15, a mid-task status 35, a yes/no question 60, a diagnosis
@@ -105,9 +109,9 @@ action. What changed:
 | **Next action** | Rule 3, end with one concrete step | `**Next:**` is line 2, directly under the answer, and it is the only place an ask, an offer, or an open decision may appear |
 | **Length** | Prose rules, no numbers | Hard word caps per turn type, classified by what the reader asked, not by how much the agent found |
 | **What survives the cut** | Judgment call | Defined: a fact that changes your next action, an approval, safety, something irreversible, cost, or whether the result is correct. Those land in the first 60 words with numbers and scope intact; proof, method, and identifiers stay out |
-| **Non-blocking concerns** | Tangents suppressed or offered as a follow-up question | A named home: `## Worth knowing`, up to three tagged one-liners. Deferred, never dropped. Anything blocking or needing approval goes in `**Next:**` instead |
+| **Non-blocking concerns** | Tangents suppressed or offered as a follow-up question | A named home: `## Worth knowing`, tagged one-liners, every real risk or tradeoff listed. Deferred, never dropped. Anything blocking or needing approval goes in `**Next:**` instead |
 | **Work already done** | Not addressed | Never listed. The result is the news; the steps are not |
-| **Banned surface** | Idioms removed in the pre-send check | Also no emojis, no em dashes or en dashes, no italic, no tables, no bold outside `**Next:**` and `## Worth knowing`, English only |
+| **Banned surface** | Idioms removed in the pre-send check | Also no emojis, no em dashes or en dashes, no italic, no tables, bold only on the `**Next:**` label and one key phrase per paragraph, English only |
 | **Background jobs** | Not addressed | When Claude Code runs the session as a background job (`claude --bg`), line 1 doubles as the job's status headline. See below |
 
 The upstream "when to break the rules" cases (explain-fully requests, destructive
@@ -171,9 +175,9 @@ in 2.1.91. On current versions the selector lives in `/config`.
 - **Drop a section of the shape**: delete its numbered item under `## Shape`.
   Items 3 to 5 (body, `Also:` line, `## Worth knowing`) are optional already and
   can go without touching anything else. `**Next:**` is also referenced under
-  Budgets and under Renderer and register; rename it in all three sections.
-- **Rename `## Worth knowing`**: it appears under Shape and twice under Renderer
-  and register. Change all three.
+  Budgets, Key-phrase bolding, and Renderer and register; rename it in all four sections.
+- **Rename `## Worth knowing`**: it appears under Shape and under Renderer and
+  register. Change both.
 - **Not on background jobs**: the marker sentence in Shape item 1 is inert in
   interactive sessions, since it fires only when the system prompt asks for
   `result:` lines. Leave it in or cut it; nothing else depends on it.
